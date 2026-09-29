@@ -201,6 +201,16 @@ li.q.done .num { color: var(--accent); }
 .dot.E { background: var(--easy); } .dot.M { background: var(--med); } .dot.H { background: var(--hard); }
 .empty { color: var(--muted); font-size: 14px; background: var(--raised); border: 1px dashed var(--line); border-radius: 10px; padding: 14px; margin: 0; }
 
+.theme-btn {
+  display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px 6px 10px;
+}
+.theme-btn:hover { border-color: var(--accent); }
+.theme-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+.theme-btn .moon { display: none; }
+.theme-btn[data-mode="dark"] .sun { display: none; }
+.theme-btn[data-mode="dark"] .moon { display: block; }
+
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -237,6 +247,11 @@ li.q.done .num { color: var(--accent); }
     <label class="toggle" for="hideDone"><input class="cb" type="checkbox" id="hideDone"> Hide completed</label>
     <label class="toggle" for="expandAll"><input class="cb" type="checkbox" id="expandAll" checked> Expand all</label>
     <span class="sync" id="sync">Loading</span>
+    <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch colour theme">
+      <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      <span id="themeLabel">Light</span>
+    </button>
   </div>
 
   <div class="grid">
@@ -566,6 +581,28 @@ document.getElementById("hideDone").addEventListener("change", applyFilter);
 document.getElementById("expandAll").addEventListener("change", e => {
   document.querySelectorAll("details.topic").forEach(d => { d.open = e.target.checked; });
 });
+
+// Theme: explicit choice stored per browser; otherwise follow the viewer / OS setting.
+const THEME_KEY = "nc150-theme";
+const rootEl = document.documentElement;
+const darkMq = matchMedia("(prefers-color-scheme: dark)");
+const effectiveTheme = () => rootEl.dataset.theme || (darkMq.matches ? "dark" : "light");
+function syncThemeBtn() {
+  const mode = effectiveTheme(), btn = document.getElementById("themeBtn");
+  btn.dataset.mode = mode;
+  document.getElementById("themeLabel").textContent = mode === "dark" ? "Dark" : "Light";
+  btn.setAttribute("aria-label", "Switch to " + (mode === "dark" ? "light" : "dark") + " theme");
+}
+try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") rootEl.dataset.theme = saved; } catch (e) {}
+document.getElementById("themeBtn").addEventListener("click", () => {
+  const next = effectiveTheme() === "dark" ? "light" : "dark";
+  rootEl.dataset.theme = next;
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  syncThemeBtn();
+});
+darkMq.addEventListener("change", syncThemeBtn);
+new MutationObserver(syncThemeBtn).observe(rootEl, { attributes: true, attributeFilter: ["data-theme"] });
+syncThemeBtn();
 
 build();
 render();
