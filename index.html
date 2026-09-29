@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="NeetCode 150 tracker: problems by topic with LeetCode links, checkboxes and a dated completion log.">
+<meta name="description" content="NeetCode 150 progress: problems by topic with LeetCode links and a dated completion log.">
 <style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>NeetCode 150 Log</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<style>
+<link data-keep rel="preconnect" href="https://fonts.googleapis.com">
+<link data-keep rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link data-keep rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style id="css">
 /* Layout: summary band on top (count, difficulty split, activity grid), topic jump chips, then two columns: topic checklists left, sticky dated log right; stacks on phones. */
 :root {
   --bg: #eef1f6;
@@ -211,6 +211,24 @@ li.q.done .num { color: var(--accent); }
 .theme-btn[data-mode="dark"] .sun { display: none; }
 .theme-btn[data-mode="dark"] .moon { display: block; }
 
+input.cb:disabled { cursor: default; opacity: 1; }
+input.cb:disabled:not(:checked) { border-color: var(--line); background: var(--raised); }
+input.cb:disabled:hover { border-color: var(--line); }
+input.cb:disabled:checked:hover { border-color: var(--accent); }
+.mode { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+.mode b { color: var(--ink); font-weight: 600; }
+
+.owner-panel { background: var(--surface); border: 1px solid var(--accent); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+.owner-panel h2 { font-family: var(--font-display); font-size: 19px; margin: 0; }
+.owner-panel p { margin: 0; color: var(--muted); font-size: 14px; max-width: 70ch; }
+.owner-panel p b { color: var(--ink); }
+.owner-form { display: flex; flex-wrap: wrap; gap: 10px; }
+.owner-form input { flex: 1 1 260px; font: inherit; font-family: var(--font-mono); font-size: 13px; color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.owner-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.primary { font: inherit; font-size: 14px; font-weight: 600; color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+.owner-err { color: var(--hard) !important; }
+.owner-help { font-size: 12px !important; color: var(--faint) !important; }
+
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -218,6 +236,7 @@ li.q.done .num { color: var(--accent); }
 <body>
 
 
+<template id="shell">
 <div class="wrap">
   <section class="band" aria-label="Progress summary">
     <div>
@@ -228,6 +247,7 @@ li.q.done .num { color: var(--accent); }
         <span class="pct" id="pct">0%</span>
       </div>
       <div class="bar"><i id="bar"></i></div>
+      <p class="mode" id="mode"></p>
     </div>
     <div class="diffs" id="diffs"></div>
     <div class="heat-wrap">
@@ -235,6 +255,18 @@ li.q.done .num { color: var(--accent); }
       <div class="heat-scroll"><div class="heat" id="heat" role="img" aria-label="Problems solved per day over the last 20 weeks"></div></div>
       <div class="legend">Less <span style="background:var(--heat0)"></span><span style="background:var(--heat1)"></span><span style="background:var(--heat2)"></span><span style="background:var(--heat3)"></span><span style="background:var(--heat4)"></span> More</div>
     </div>
+  </section>
+
+  <section class="owner-panel" id="ownerPanel" hidden aria-labelledby="ownerTitle">
+    <h2 id="ownerTitle">Owner login</h2>
+    <p>Paste a GitHub fine-grained token that can write to the <b>neetcode-150-tracker</b> repo (Contents: Read and write). It is kept only in this browser. Visitors never need one.</p>
+    <form id="ownerForm" class="owner-form">
+      <input type="password" id="tokenInput" autocomplete="off" placeholder="github_pat_…" aria-label="GitHub token">
+      <button type="submit" class="primary">Save token</button>
+      <button type="button" class="theme-btn" id="ownerCancel">Cancel</button>
+    </form>
+    <p class="owner-err" id="ownerErr" hidden></p>
+    <p class="owner-help">Create one at github.com → Settings → Developer settings → Fine-grained tokens. Repository access: only this repo. Permission: Contents, read and write.</p>
   </section>
 
   <nav class="chips" id="chips" aria-label="Jump to topic"></nav>
@@ -247,6 +279,7 @@ li.q.done .num { color: var(--accent); }
     <label class="toggle" for="hideDone"><input class="cb" type="checkbox" id="hideDone"> Hide completed</label>
     <label class="toggle" for="expandAll"><input class="cb" type="checkbox" id="expandAll" checked> Expand all</label>
     <span class="sync" id="sync">Loading</span>
+    <button type="button" class="theme-btn" id="ownerBtn">Owner login</button>
     <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch colour theme">
       <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
       <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
@@ -263,8 +296,21 @@ li.q.done .num { color: var(--accent); }
     </aside>
   </div>
 </div>
+</template>
 
-<script>
+<script type="application/json" id="state">{"done":{}}</script>
+<script id="app">
+// Capture the page's own source pieces before anything renders, so a save can rebuild the document.
+const SRC = {
+  title: document.querySelector("title") ? document.querySelector("title").outerHTML : "<title>NeetCode 150 Log</title>",
+  links: [...document.querySelectorAll("link[data-keep]")].map(l => l.outerHTML).join("\n"),
+  css: document.getElementById("css").outerHTML,
+  shell: document.getElementById("shell").outerHTML,
+  app: document.getElementById("app").outerHTML
+};
+const shellTpl = document.getElementById("shell");
+shellTpl.after(shellTpl.content.cloneNode(true));
+
 const DATA = [
   ["Arrays & Hashing", [
     ["Contains Duplicate","contains-duplicate","E",217],["Valid Anagram","valid-anagram","E",242],["Two Sum","two-sum","E",1],
@@ -376,14 +422,14 @@ const BY_SLUG = {};
 DATA.forEach(([topic, qs]) => qs.forEach(([name, slug, d, n]) => { BY_SLUG[slug] = { name, slug, d, n, topic }; }));
 const TOTAL = Object.keys(BY_SLUG).length;
 const url = slug => "https://leetcode.com/problems/" + slug + "/";
-const LS_KEY = "nc150-done-v1";
 
 // done: { slug: { date: "YYYY-MM-DD", t: epochMs } }
-let done = {};
-try { done = JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch (e) { done = {}; }
+// Progress lives in the page itself (the #state block), so everyone who opens the link sees it.
+let state = {};
+try { state = JSON.parse(document.getElementById("state").textContent) || {}; } catch (e) { state = {}; }
+let done = state.done || {};
 
-let docRef = null;
-let saving = false, pending = false;
+let canWrite = false, publishing = false, saveTimer = null, artifactApi = null;
 
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 const today = () => iso(new Date());
@@ -397,7 +443,6 @@ function fmtDay(s) {
 }
 const shortDay = s => parse(s).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 function setSync(msg, state) { const s = document.getElementById("sync"); s.textContent = msg; s.dataset.s = state || ""; }
-function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(done)); } catch (e) {} }
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
@@ -560,20 +605,111 @@ function applyFilter() {
 }
 
 function toggle(slug, checked) {
+  if (!canWrite || publishing) { render(); return; }
   if (checked) done[slug] = { date: today(), t: Date.now() };
   else delete done[slug];
-  persist();
   render();
+  setSync("Unsaved change…");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 1200); // batch quick ticks into one commit
 }
 
-function persist() {
-  saveLocal();
-  if (!docRef) return;
-  if (saving) { pending = true; return; }
-  saving = true; setSync("Saving…");
-  docRef.set({ done }).then(() => setSync("Synced to your account", "ok"))
-    .catch(() => setSync("Saved in this browser", "local"))
-    .finally(() => { saving = false; if (pending) { pending = false; persist(); } });
+// ---------- storage: progress.json in the GitHub repo ----------
+const REPO = "codificador21/neetcode-150-tracker";
+const FILE = "progress.json";
+const API = "https://api.github.com/repos/" + REPO + "/contents/" + FILE;
+const TOKEN_KEY = "nc150-gh-token";
+let token = null, fileSha = null;
+try { token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+
+const b64decode = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, "")), c => c.charCodeAt(0)));
+const b64encode = str => { const bytes = new TextEncoder().encode(str); let bin = ""; bytes.forEach(b => { bin += String.fromCharCode(b); }); return btoa(bin); };
+const ghHeaders = () => Object.assign({ Accept: "application/vnd.github+json" }, token ? { Authorization: "Bearer " + token } : {});
+
+async function loadProgress() {
+  // Fresh copy from the GitHub API first; fall back to the copy served with the site.
+  try {
+    const r = await fetch(API + "?ref=main&_=" + Date.now(), { headers: ghHeaders(), cache: "no-store" });
+    if (r.ok) { const j = await r.json(); fileSha = j.sha; return JSON.parse(b64decode(j.content)); }
+    if (r.status === 404) return { done: {} };
+  } catch (e) {}
+  const r2 = await fetch(FILE + "?_=" + Date.now(), { cache: "no-store" });
+  if (!r2.ok) throw new Error("load failed");
+  return r2.json();
+}
+
+async function putProgress() {
+  const body = JSON.stringify({ done, updated: Date.now() }, null, 1);
+  const send = () => fetch(API, {
+    method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+    body: JSON.stringify({ message: "Update progress (" + Object.keys(done).length + "/150)", content: b64encode(body), sha: fileSha || undefined, branch: "main" })
+  });
+  let r = await send();
+  if (r.status === 409 || r.status === 422) {
+    // Our copy of the file's version was stale: fetch the current sha and write again.
+    const cur = await fetch(API + "?ref=main&_=" + Date.now(), { headers: ghHeaders(), cache: "no-store" });
+    if (cur.ok) { fileSha = (await cur.json()).sha; r = await send(); }
+  }
+  if (!r.ok) { const err = new Error("save failed"); err.status = r.status; throw err; }
+  fileSha = (await r.json()).content.sha;
+  state.updated = Date.now();
+}
+
+async function save() {
+  saveTimer = null;
+  if (!canWrite) return;
+  if (publishing) { saveTimer = setTimeout(save, 800); return; }
+  publishing = true;
+  setSync("Saving…");
+  try {
+    await putProgress();
+    setSync("Saved for everyone", "ok");
+  } catch (e) {
+    if (e.status === 401 || e.status === 403 || e.status === 404) {
+      setSync("Token can't write to the repo", "local");
+      logout("That token can't write to the repo. Check it has Contents: Read and write on neetcode-150-tracker.");
+    } else {
+      setSync("Couldn't save. Tick again to retry.", "local");
+    }
+  } finally {
+    publishing = false;
+  }
+}
+
+async function checkToken(t) {
+  const r = await fetch("https://api.github.com/repos/" + REPO, { headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + t } });
+  if (!r.ok) return false;
+  const j = await r.json();
+  return !!(j.permissions && j.permissions.push);
+}
+
+function logout(msg) {
+  token = null; canWrite = false;
+  try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+  setDisabled(true); showMode(); syncOwnerBtn();
+  if (msg) openOwnerPanel(msg);
+}
+
+function syncOwnerBtn() { document.getElementById("ownerBtn").textContent = canWrite ? "Log out" : "Owner login"; }
+function openOwnerPanel(err) {
+  const p = document.getElementById("ownerPanel"), e = document.getElementById("ownerErr");
+  p.hidden = false; e.hidden = !err; e.textContent = err || "";
+  document.getElementById("tokenInput").focus();
+}
+
+function setDisabled(on) { document.querySelectorAll("li.q input.cb").forEach(cb => { cb.disabled = on; }); }
+function setReadOnly() {
+  canWrite = false;
+  setDisabled(true);
+  setSync("View only");
+  showMode();
+}
+function showMode() {
+  const m = document.getElementById("mode");
+  const upd = state.updated ? new Date(state.updated).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+  m.replaceChildren();
+  if (canWrite) m.append(el("b", { text: "Owner mode." }), document.createTextNode(" Your ticks are saved for everyone who opens this link."));
+  else m.append(el("b", { text: "Read-only progress." }), document.createTextNode(upd ? " Last updated " + upd + "." : " Nothing ticked yet."));
 }
 
 document.getElementById("search").addEventListener("input", applyFilter);
@@ -606,38 +742,66 @@ syncThemeBtn();
 
 build();
 render();
+setDisabled(true);
+setSync("Loading");
+showMode();
+
+document.getElementById("ownerBtn").addEventListener("click", () => {
+  if (canWrite) { logout(); setSync("View only"); return; }
+  openOwnerPanel();
+});
+document.getElementById("ownerCancel").addEventListener("click", () => { document.getElementById("ownerPanel").hidden = true; });
+document.getElementById("ownerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const t = document.getElementById("tokenInput").value.trim();
+  if (!t) return;
+  const errEl = document.getElementById("ownerErr");
+  errEl.hidden = true;
+  let ok = false;
+  try { ok = await checkToken(t); } catch (err) {}
+  if (!ok) { errEl.textContent = "That token can't write to neetcode-150-tracker. Check the repo access and the Contents permission."; errEl.hidden = false; return; }
+  token = t;
+  try { localStorage.setItem(TOKEN_KEY, t); } catch (err) {}
+  document.getElementById("tokenInput").value = "";
+  document.getElementById("ownerPanel").hidden = true;
+  enableOwner();
+});
+
+let loaded = false;
+function enableOwner() {
+  if (!token || !loaded) return;
+  canWrite = true;
+  setDisabled(false);
+  setSync("Ready to edit", "ok");
+  showMode(); syncOwnerBtn();
+  // Carry over ticks made in this browser with the older, browser-only version of the tracker.
+  let old = null;
+  try { old = JSON.parse(localStorage.getItem("nc150-done-v1") || "null"); } catch (e) {}
+  if (old && typeof old === "object") {
+    let added = 0;
+    for (const k in old) if (BY_SLUG[k] && !done[k] && old[k] && old[k].date) { done[k] = old[k]; added++; }
+    try { localStorage.removeItem("nc150-done-v1"); } catch (e) {}
+    if (added) { render(); save(); }
+  }
+}
 
 (async () => {
-  const claude = window.claude;
-  if (!claude || !claude.use) { setSync("Saved in this browser", "local"); return; }
-  setSync("Connecting…");
-  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
-  const uid = user ? await user.id() : null;
-  if (!db || !uid) { setSync("Saved in this browser", "local"); return; }
-  docRef = db.collection("data/users/" + uid).doc("progress");
-  let first = true;
-  docRef.onSnapshot(snap => {
-    const data = snap.exists ? snap.data() : null;
-    const remote = (data && data.done) || null;
-    if (first) {
-      first = false;
-      // Merge anything ticked in this browser before the account store answered.
-      const merged = JSON.parse(JSON.stringify(remote || {}));
-      let changed = false;
-      for (const k in done) if (!merged[k]) { merged[k] = done[k]; changed = true; }
-      done = merged;
-      saveLocal();
-      render();
-      if (changed) persist(); else setSync("Synced to your account", "ok");
-      return;
+  try {
+    const data = await loadProgress();
+    state = data || {}; done = state.done || {};
+    loaded = true;
+    render(); showMode();
+    setSync("View only");
+    if (token) {
+      const ok = await checkToken(token).catch(() => false);
+      if (ok) enableOwner(); else logout("Your saved token no longer works. Paste a new one.");
     }
-    if (remote && !saving && !pending) {
-      done = JSON.parse(JSON.stringify(remote));
-      saveLocal();
-      render();
-    }
-  }, () => setSync("Saved in this browser", "local"));
+  } catch (e) {
+    setSync("Couldn't load progress. Refresh to try again.", "local");
+  }
 })();
+
+window.addEventListener("pagehide", () => { if (saveTimer && !publishing) { clearTimeout(saveTimer); save(); } });
 </script>
 
 </body>
