@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="NeetCode 150 tracker: problems by topic with LeetCode links, checkboxes and a dated completion log.">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>NeetCode 150 Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: summary band on top (count, difficulty split, activity grid), topic jump chips, then two columns: topic checklists left, sticky dated log right; stacks on phones. */
+:root {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --raised: #f7f9fc;
+  --ink: #131b28;
+  --muted: #5b687b;
+  --faint: #8a95a6;
+  --line: #dde3ec;
+  --accent: #2d5be3;
+  --accent-ink: #ffffff;
+  --accent-soft: #e5ecfd;
+  --easy: #1b8657;
+  --easy-soft: #e2f4ea;
+  --med: #a86b0f;
+  --med-soft: #fbf0dc;
+  --hard: #c03a34;
+  --hard-soft: #fbe5e3;
+  --heat0: #e3e8f0; --heat1: #bccdf8; --heat2: #86a4f0; --heat3: #4f78e6; --heat4: #2446b8;
+  --shadow: 0 1px 2px rgba(19, 27, 40, .05), 0 4px 16px rgba(19, 27, 40, .04);
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0c1118; --surface: #141b25; --raised: #19212d; --ink: #e5eaf2; --muted: #9aa6b8; --faint: #6d7a8e; --line: #263040;
+    --accent: #7d9dff; --accent-ink: #0c1118; --accent-soft: #1d2945;
+    --easy: #52c690; --easy-soft: #15291f; --med: #e4ac4c; --med-soft: #2d2413; --hard: #f27d75; --hard-soft: #321b1a;
+    --heat0: #1d2532; --heat1: #22345e; --heat2: #2f4f9c; --heat3: #4d74dd; --heat4: #8aa7ff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c1118; --surface: #141b25; --raised: #19212d; --ink: #e5eaf2; --muted: #9aa6b8; --faint: #6d7a8e; --line: #263040;
+  --accent: #7d9dff; --accent-ink: #0c1118; --accent-soft: #1d2945;
+  --easy: #52c690; --easy-soft: #15291f; --med: #e4ac4c; --med-soft: #2d2413; --hard: #f27d75; --hard-soft: #321b1a;
+  --heat0: #1d2532; --heat1: #22345e; --heat2: #2f4f9c; --heat3: #4d74dd; --heat4: #8aa7ff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; padding: 0 20px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-block: 32px 72px; display: flex; flex-direction: column; gap: 22px; }
+
+/* ---------- summary band ---------- */
+.band {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto; gap: 28px 36px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px 28px; box-shadow: var(--shadow);
+}
+@media (max-width: 980px) { .band { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .heat-wrap { grid-column: 1 / -1; } }
+@media (max-width: 620px) { .band { grid-template-columns: minmax(0, 1fr); padding: 20px; } }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 4.2vw, 44px); letter-spacing: -0.025em; line-height: 1; margin: 0; text-wrap: balance; }
+.count-line { display: flex; align-items: baseline; gap: 10px; margin-top: 14px; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: 52px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.of { font-family: var(--font-mono); color: var(--muted); font-size: 15px; }
+.pct { margin-left: auto; font-family: var(--font-mono); font-size: 13px; color: var(--accent); background: var(--accent-soft); padding: 2px 9px; border-radius: 999px; }
+.bar { height: 8px; border-radius: 4px; background: var(--heat0); overflow: hidden; margin-top: 12px; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; border-radius: 4px; transition: width .35s ease; }
+
+.diffs { display: flex; flex-direction: column; gap: 12px; }
+.drow { display: grid; grid-template-columns: 58px minmax(0, 1fr) 62px; gap: 12px; align-items: center; }
+.dname { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.dname.E { color: var(--easy); } .dname.M { color: var(--med); } .dname.H { color: var(--hard); }
+.dbar { height: 6px; border-radius: 3px; overflow: hidden; }
+.dbar.E { background: var(--easy-soft); } .dbar.M { background: var(--med-soft); } .dbar.H { background: var(--hard-soft); }
+.dbar > i { display: block; height: 100%; width: 0; border-radius: 3px; transition: width .35s ease; }
+.dbar.E > i { background: var(--easy); } .dbar.M > i { background: var(--med); } .dbar.H > i { background: var(--hard); }
+.dnum { font-family: var(--font-mono); font-size: 13px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dnum b { color: var(--ink); font-weight: 600; }
+
+.heat-wrap { display: flex; flex-direction: column; gap: 8px; }
+.heat-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); }
+.heat-head b { color: var(--ink); font-weight: 600; }
+.heat-scroll { overflow-x: auto; }
+.heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 11px); grid-auto-columns: 11px; gap: 3px; }
+.heat span { border-radius: 2px; background: var(--heat0); }
+.heat span[data-l="1"] { background: var(--heat1); } .heat span[data-l="2"] { background: var(--heat2); }
+.heat span[data-l="3"] { background: var(--heat3); } .heat span[data-l="4"] { background: var(--heat4); }
+.heat span.future { background: transparent; }
+.heat span.today { outline: 1.5px solid var(--ink); outline-offset: 0; }
+.legend { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--faint); justify-content: flex-end; }
+.legend span { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ---------- chips + tools ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 11px; border-radius: 999px; font-size: 13px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none;
+}
+.chip:hover { border-color: var(--accent); }
+.chip small { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip.full { background: var(--easy-soft); border-color: transparent; }
+.chip.full small { color: var(--easy); }
+
+.tools { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+.search { position: relative; flex: 1 1 260px; max-width: 380px; }
+.search input {
+  width: 100%; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 12px 9px 36px;
+}
+.search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: var(--faint); fill: none; stroke-width: 2; }
+.toggle { color: var(--muted); display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-size: 14px; user-select: none; }
+.sync { font-family: var(--font-mono); font-size: 12px; color: var(--faint); margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+.sync[data-s="ok"]::before { background: var(--easy); }
+.sync[data-s="local"]::before { background: var(--med); }
+
+/* ---------- checkbox ---------- */
+input.cb {
+  appearance: none; -webkit-appearance: none; margin: 0; width: 20px; height: 20px; flex: none; cursor: pointer;
+  border: 1.5px solid var(--faint); border-radius: 6px; background: var(--surface); display: grid; place-items: center;
+  transition: background .12s, border-color .12s;
+}
+input.cb::after {
+  content: ""; width: 5px; height: 10px; border: solid var(--accent-ink); border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px) scale(0); transition: transform .12s ease;
+}
+input.cb:hover { border-color: var(--accent); }
+input.cb:checked { background: var(--accent); border-color: var(--accent); }
+input.cb:checked::after { transform: rotate(45deg) translate(-1px, -1px) scale(1); }
+.toggle input.cb { width: 17px; height: 17px; border-radius: 5px; }
+.toggle input.cb::after { width: 4px; height: 8px; }
+
+/* ---------- topics ---------- */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } .log { position: static !important; max-height: none !important; } }
+.topics { display: flex; flex-direction: column; gap: 14px; }
+details.topic { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); scroll-margin-top: 16px; }
+details.topic > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 14px; }
+details.topic > summary::-webkit-details-marker { display: none; }
+details.topic > summary:hover { background: var(--raised); }
+.chev { width: 9px; height: 9px; border-right: 2px solid var(--faint); border-bottom: 2px solid var(--faint); transform: rotate(-45deg); transition: transform .15s; flex: none; }
+details[open] > summary .chev { transform: rotate(45deg); }
+.t-name { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; flex: 1; min-width: 0; }
+.t-count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
+.t-count.full { color: var(--easy); font-weight: 600; }
+.t-bar { width: 84px; height: 6px; border-radius: 3px; background: var(--heat0); overflow: hidden; flex: none; }
+.t-bar > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .35s ease; }
+.t-bar.full > i { background: var(--easy); }
+@media (max-width: 480px) { .t-bar { display: none; } }
+
+ul.qs { list-style: none; margin: 0; padding: 0 10px 10px; }
+li.q {
+  display: grid; grid-template-columns: auto 44px minmax(0, 1fr) auto 58px; gap: 12px; align-items: center;
+  padding: 9px 10px; border-radius: 9px;
+}
+li.q + li.q { box-shadow: inset 0 1px 0 var(--line); }
+li.q:hover { background: var(--raised); }
+.num { font-family: var(--font-mono); font-size: 13px; color: var(--faint); font-variant-numeric: tabular-nums; text-align: right; }
+li.q a.name { color: var(--ink); text-decoration: none; font-weight: 500; overflow-wrap: anywhere; }
+li.q a.name:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.lock { font-family: var(--font-mono); font-size: 10px; color: var(--med); border: 1px solid var(--med-soft); background: var(--med-soft); border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: 2px; }
+li.q.done a.name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
+li.q.done .num { color: var(--accent); }
+.when { font-family: var(--font-mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+.diff { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .04em; text-align: center; padding: 2px 0; border-radius: 6px; }
+.diff.E { color: var(--easy); background: var(--easy-soft); } .diff.M { color: var(--med); background: var(--med-soft); } .diff.H { color: var(--hard); background: var(--hard-soft); }
+@media (max-width: 520px) {
+  li.q { grid-template-columns: auto 36px minmax(0, 1fr) 50px; }
+  li.q .when { grid-column: 3 / 5; grid-row: 2; }
+}
+
+/* ---------- log ---------- */
+.log {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px 20px; box-shadow: var(--shadow);
+}
+.log h2 { font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: -0.01em; margin: 0 0 2px; }
+.log .hint { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.timeline { display: flex; flex-direction: column; }
+.day { position: relative; padding: 0 0 16px 20px; }
+.day::before { content: ""; position: absolute; left: 4px; top: 8px; bottom: -8px; width: 1.5px; background: var(--line); }
+.day:last-child::before { display: none; }
+.day::after { content: ""; position: absolute; left: 0; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); }
+.day-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.day-date { font-weight: 600; font-size: 14px; }
+.day-n { font-family: var(--font-mono); font-size: 11px; color: var(--accent); background: var(--accent-soft); padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.day ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.day li { display: grid; grid-template-columns: 8px 40px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 14px; }
+.day li .n { font-family: var(--font-mono); font-size: 12px; color: var(--faint); text-align: right; }
+.day li a { color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+.day li a:hover { color: var(--accent); text-decoration: underline; }
+.dot { width: 7px; height: 7px; border-radius: 50%; transform: translateY(-1px); }
+.dot.E { background: var(--easy); } .dot.M { background: var(--med); } .dot.H { background: var(--hard); }
+.empty { color: var(--muted); font-size: 14px; background: var(--raised); border: 1px dashed var(--line); border-radius: 10px; padding: 14px; margin: 0; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <section class="band" aria-label="Progress summary">
+    <div>
+      <p class="eyebrow">Interview prep tracker</p>
+      <h1>NeetCode 150</h1>
+      <div class="count-line">
+        <span class="big" id="total">0</span><span class="of">/ 150 solved</span>
+        <span class="pct" id="pct">0%</span>
+      </div>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+    <div class="diffs" id="diffs"></div>
+    <div class="heat-wrap">
+      <div class="heat-head"><span>Last 20 weeks</span><span id="streak"></span></div>
+      <div class="heat-scroll"><div class="heat" id="heat" role="img" aria-label="Problems solved per day over the last 20 weeks"></div></div>
+      <div class="legend">Less <span style="background:var(--heat0)"></span><span style="background:var(--heat1)"></span><span style="background:var(--heat2)"></span><span style="background:var(--heat3)"></span><span style="background:var(--heat4)"></span> More</div>
+    </div>
+  </section>
+
+  <nav class="chips" id="chips" aria-label="Jump to topic"></nav>
+
+  <div class="tools">
+    <label class="search" for="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+      <input type="search" id="search" placeholder="Search by name or number" aria-label="Search problems">
+    </label>
+    <label class="toggle" for="hideDone"><input class="cb" type="checkbox" id="hideDone"> Hide completed</label>
+    <label class="toggle" for="expandAll"><input class="cb" type="checkbox" id="expandAll" checked> Expand all</label>
+    <span class="sync" id="sync">Loading</span>
+  </div>
+
+  <div class="grid">
+    <main class="topics" id="topics"></main>
+    <aside class="log" aria-labelledby="logTitle">
+      <h2 id="logTitle">Completed by date</h2>
+      <p class="hint">Newest first. Unticking a problem removes it here.</p>
+      <div class="timeline" id="log"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  ["Arrays & Hashing", [
+    ["Contains Duplicate","contains-duplicate","E",217],["Valid Anagram","valid-anagram","E",242],["Two Sum","two-sum","E",1],
+    ["Group Anagrams","group-anagrams","M",49],["Top K Frequent Elements","top-k-frequent-elements","M",347],
+    ["Encode and Decode Strings","encode-and-decode-strings","M",271],["Product of Array Except Self","product-of-array-except-self","M",238],
+    ["Valid Sudoku","valid-sudoku","M",36],["Longest Consecutive Sequence","longest-consecutive-sequence","M",128]]],
+  ["Two Pointers", [
+    ["Valid Palindrome","valid-palindrome","E",125],["Two Sum II - Input Array Is Sorted","two-sum-ii-input-array-is-sorted","M",167],
+    ["3Sum","3sum","M",15],["Container With Most Water","container-with-most-water","M",11],["Trapping Rain Water","trapping-rain-water","H",42]]],
+  ["Sliding Window", [
+    ["Best Time to Buy and Sell Stock","best-time-to-buy-and-sell-stock","E",121],
+    ["Longest Substring Without Repeating Characters","longest-substring-without-repeating-characters","M",3],
+    ["Longest Repeating Character Replacement","longest-repeating-character-replacement","M",424],
+    ["Permutation in String","permutation-in-string","M",567],["Minimum Window Substring","minimum-window-substring","H",76],
+    ["Sliding Window Maximum","sliding-window-maximum","H",239]]],
+  ["Stack", [
+    ["Valid Parentheses","valid-parentheses","E",20],["Min Stack","min-stack","M",155],
+    ["Evaluate Reverse Polish Notation","evaluate-reverse-polish-notation","M",150],["Generate Parentheses","generate-parentheses","M",22],
+    ["Daily Temperatures","daily-temperatures","M",739],["Car Fleet","car-fleet","M",853],
+    ["Largest Rectangle in Histogram","largest-rectangle-in-histogram","H",84]]],
+  ["Binary Search", [
+    ["Binary Search","binary-search","E",704],["Search a 2D Matrix","search-a-2d-matrix","M",74],["Koko Eating Bananas","koko-eating-bananas","M",875],
+    ["Find Minimum in Rotated Sorted Array","find-minimum-in-rotated-sorted-array","M",153],
+    ["Search in Rotated Sorted Array","search-in-rotated-sorted-array","M",33],["Time Based Key-Value Store","time-based-key-value-store","M",981],
+    ["Median of Two Sorted Arrays","median-of-two-sorted-arrays","H",4]]],
+  ["Linked List", [
+    ["Reverse Linked List","reverse-linked-list","E",206],["Merge Two Sorted Lists","merge-two-sorted-lists","E",21],
+    ["Linked List Cycle","linked-list-cycle","E",141],["Reorder List","reorder-list","M",143],
+    ["Remove Nth Node From End of List","remove-nth-node-from-end-of-list","M",19],
+    ["Copy List With Random Pointer","copy-list-with-random-pointer","M",138],["Add Two Numbers","add-two-numbers","M",2],
+    ["Find the Duplicate Number","find-the-duplicate-number","M",287],["LRU Cache","lru-cache","M",146],
+    ["Merge k Sorted Lists","merge-k-sorted-lists","H",23],["Reverse Nodes in k-Group","reverse-nodes-in-k-group","H",25]]],
+  ["Trees", [
+    ["Invert Binary Tree","invert-binary-tree","E",226],["Maximum Depth of Binary Tree","maximum-depth-of-binary-tree","E",104],
+    ["Diameter of Binary Tree","diameter-of-binary-tree","E",543],["Balanced Binary Tree","balanced-binary-tree","E",110],
+    ["Same Tree","same-tree","E",100],["Subtree of Another Tree","subtree-of-another-tree","E",572],
+    ["Lowest Common Ancestor of a Binary Search Tree","lowest-common-ancestor-of-a-binary-search-tree","M",235],
+    ["Binary Tree Level Order Traversal","binary-tree-level-order-traversal","M",102],
+    ["Binary Tree Right Side View","binary-tree-right-side-view","M",199],
+    ["Count Good Nodes in Binary Tree","count-good-nodes-in-binary-tree","M",1448],
+    ["Validate Binary Search Tree","validate-binary-search-tree","M",98],
+    ["Kth Smallest Element in a BST","kth-smallest-element-in-a-bst","M",230],
+    ["Construct Binary Tree from Preorder and Inorder Traversal","construct-binary-tree-from-preorder-and-inorder-traversal","M",105],
+    ["Binary Tree Maximum Path Sum","binary-tree-maximum-path-sum","H",124],
+    ["Serialize and Deserialize Binary Tree","serialize-and-deserialize-binary-tree","H",297]]],
+  ["Tries", [
+    ["Implement Trie (Prefix Tree)","implement-trie-prefix-tree","M",208],
+    ["Design Add and Search Words Data Structure","design-add-and-search-words-data-structure","M",211],
+    ["Word Search II","word-search-ii","H",212]]],
+  ["Heap / Priority Queue", [
+    ["Kth Largest Element in a Stream","kth-largest-element-in-a-stream","E",703],["Last Stone Weight","last-stone-weight","E",1046],
+    ["K Closest Points to Origin","k-closest-points-to-origin","M",973],
+    ["Kth Largest Element in an Array","kth-largest-element-in-an-array","M",215],["Task Scheduler","task-scheduler","M",621],
+    ["Design Twitter","design-twitter","M",355],["Find Median from Data Stream","find-median-from-data-stream","H",295]]],
+  ["Backtracking", [
+    ["Subsets","subsets","M",78],["Combination Sum","combination-sum","M",39],["Permutations","permutations","M",46],
+    ["Subsets II","subsets-ii","M",90],["Combination Sum II","combination-sum-ii","M",40],["Word Search","word-search","M",79],
+    ["Palindrome Partitioning","palindrome-partitioning","M",131],
+    ["Letter Combinations of a Phone Number","letter-combinations-of-a-phone-number","M",17],["N-Queens","n-queens","H",51]]],
+  ["Graphs", [
+    ["Number of Islands","number-of-islands","M",200],["Max Area of Island","max-area-of-island","M",695],["Clone Graph","clone-graph","M",133],
+    ["Walls and Gates","walls-and-gates","M",286],["Rotting Oranges","rotting-oranges","M",994],
+    ["Pacific Atlantic Water Flow","pacific-atlantic-water-flow","M",417],["Surrounded Regions","surrounded-regions","M",130],
+    ["Course Schedule","course-schedule","M",207],["Course Schedule II","course-schedule-ii","M",210],
+    ["Graph Valid Tree","graph-valid-tree","M",261],
+    ["Number of Connected Components in an Undirected Graph","number-of-connected-components-in-an-undirected-graph","M",323],
+    ["Redundant Connection","redundant-connection","M",684],["Word Ladder","word-ladder","H",127]]],
+  ["Advanced Graphs", [
+    ["Network Delay Time","network-delay-time","M",743],["Reconstruct Itinerary","reconstruct-itinerary","H",332],
+    ["Min Cost to Connect All Points","min-cost-to-connect-all-points","M",1584],["Swim in Rising Water","swim-in-rising-water","H",778],
+    ["Alien Dictionary","alien-dictionary","H",269],["Cheapest Flights Within K Stops","cheapest-flights-within-k-stops","M",787]]],
+  ["1-D Dynamic Programming", [
+    ["Climbing Stairs","climbing-stairs","E",70],["Min Cost Climbing Stairs","min-cost-climbing-stairs","E",746],
+    ["House Robber","house-robber","M",198],["House Robber II","house-robber-ii","M",213],
+    ["Longest Palindromic Substring","longest-palindromic-substring","M",5],["Palindromic Substrings","palindromic-substrings","M",647],
+    ["Decode Ways","decode-ways","M",91],["Coin Change","coin-change","M",322],["Maximum Product Subarray","maximum-product-subarray","M",152],
+    ["Word Break","word-break","M",139],["Longest Increasing Subsequence","longest-increasing-subsequence","M",300],
+    ["Partition Equal Subset Sum","partition-equal-subset-sum","M",416]]],
+  ["2-D Dynamic Programming", [
+    ["Unique Paths","unique-paths","M",62],["Longest Common Subsequence","longest-common-subsequence","M",1143],
+    ["Best Time to Buy and Sell Stock with Cooldown","best-time-to-buy-and-sell-stock-with-cooldown","M",309],
+    ["Coin Change II","coin-change-ii","M",518],["Target Sum","target-sum","M",494],["Interleaving String","interleaving-string","M",97],
+    ["Longest Increasing Path in a Matrix","longest-increasing-path-in-a-matrix","H",329],
+    ["Distinct Subsequences","distinct-subsequences","H",115],["Edit Distance","edit-distance","M",72],
+    ["Burst Balloons","burst-balloons","H",312],["Regular Expression Matching","regular-expression-matching","H",10]]],
+  ["Greedy", [
+    ["Maximum Subarray","maximum-subarray","M",53],["Jump Game","jump-game","M",55],["Jump Game II","jump-game-ii","M",45],
+    ["Gas Station","gas-station","M",134],["Hand of Straights","hand-of-straights","M",846],
+    ["Merge Triplets to Form Target Triplet","merge-triplets-to-form-target-triplet","M",1899],
+    ["Partition Labels","partition-labels","M",763],["Valid Parenthesis String","valid-parenthesis-string","M",678]]],
+  ["Intervals", [
+    ["Insert Interval","insert-interval","M",57],["Merge Intervals","merge-intervals","M",56],
+    ["Non-overlapping Intervals","non-overlapping-intervals","M",435],["Meeting Rooms","meeting-rooms","E",252],
+    ["Meeting Rooms II","meeting-rooms-ii","M",253],
+    ["Minimum Interval to Include Each Query","minimum-interval-to-include-each-query","H",1851]]],
+  ["Math & Geometry", [
+    ["Rotate Image","rotate-image","M",48],["Spiral Matrix","spiral-matrix","M",54],["Set Matrix Zeroes","set-matrix-zeroes","M",73],
+    ["Happy Number","happy-number","E",202],["Plus One","plus-one","E",66],["Pow(x, n)","powx-n","M",50],
+    ["Multiply Strings","multiply-strings","M",43],["Detect Squares","detect-squares","M",2013]]],
+  ["Bit Manipulation", [
+    ["Single Number","single-number","E",136],["Number of 1 Bits","number-of-1-bits","E",191],["Counting Bits","counting-bits","E",338],
+    ["Reverse Bits","reverse-bits","E",190],["Missing Number","missing-number","E",268],["Sum of Two Integers","sum-of-two-integers","M",371],
+    ["Reverse Integer","reverse-integer","M",7]]]
+];
+
+const PREMIUM = new Set(["encode-and-decode-strings", "walls-and-gates", "graph-valid-tree", "number-of-connected-components-in-an-undirected-graph", "meeting-rooms", "meeting-rooms-ii", "alien-dictionary"]);
+const DIFF_NAME = { E: "Easy", M: "Medium", H: "Hard" };
+const BY_SLUG = {};
+DATA.forEach(([topic, qs]) => qs.forEach(([name, slug, d, n]) => { BY_SLUG[slug] = { name, slug, d, n, topic }; }));
+const TOTAL = Object.keys(BY_SLUG).length;
+const url = slug => "https://leetcode.com/problems/" + slug + "/";
+const LS_KEY = "nc150-done-v1";
+
+// done: { slug: { date: "YYYY-MM-DD", t: epochMs } }
+let done = {};
+try { done = JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch (e) { done = {}; }
+
+let docRef = null;
+let saving = false, pending = false;
+
+const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const today = () => iso(new Date());
+const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+function fmtDay(s) {
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const base = parse(s).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  if (s === today()) return "Today · " + base;
+  if (s === iso(y)) return "Yesterday · " + base;
+  return base;
+}
+const shortDay = s => parse(s).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+function setSync(msg, state) { const s = document.getElementById("sync"); s.textContent = msg; s.dataset.s = state || ""; }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(done)); } catch (e) {} }
+
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const k in attrs || {}) {
+    if (k === "class") n.className = attrs[k];
+    else if (k === "text") n.textContent = attrs[k];
+    else n.setAttribute(k, attrs[k]);
+  }
+  kids.forEach(k => k && n.append(k));
+  return n;
+}
+const topicId = t => "t-" + t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+function build() {
+  const diffs = document.getElementById("diffs");
+  ["E", "M", "H"].forEach(d => {
+    diffs.append(el("div", { class: "drow" },
+      el("span", { class: "dname " + d, text: DIFF_NAME[d] }),
+      el("span", { class: "dbar " + d }, el("i", { id: "db-" + d })),
+      el("span", { class: "dnum", id: "dn-" + d })));
+  });
+
+  const chips = document.getElementById("chips");
+  const root = document.getElementById("topics");
+  DATA.forEach(([topic, qs]) => {
+    chips.append(el("a", { class: "chip", href: "#" + topicId(topic), "data-topic": topic }, document.createTextNode(topic), el("small")));
+    const det = el("details", { class: "topic", open: "", id: topicId(topic) });
+    det.append(el("summary", {},
+      el("span", { class: "chev" }),
+      el("span", { class: "t-name", text: topic }),
+      el("span", { class: "t-bar" }, el("i")),
+      el("span", { class: "t-count" })));
+    const ul = el("ul", { class: "qs" });
+    qs.forEach(([name, slug, d, n]) => {
+      const cb = el("input", { class: "cb", type: "checkbox", id: "q-" + slug, "aria-label": "Mark " + n + ". " + name + " completed" });
+      cb.addEventListener("change", () => toggle(slug, cb.checked));
+      const link = el("a", { class: "name", href: url(slug), target: "_blank", rel: "noopener", text: name });
+      const cell = el("span", {}, link);
+      if (PREMIUM.has(slug)) cell.append(el("span", { class: "lock", title: "Needs LeetCode Premium", text: "PREMIUM" }));
+      ul.append(el("li", { class: "q", "data-slug": slug, "data-search": (n + " " + name).toLowerCase() },
+        cb,
+        el("span", { class: "num", text: n }),
+        cell,
+        el("span", { class: "when" }),
+        el("span", { class: "diff " + d, text: DIFF_NAME[d] === "Medium" ? "Med" : DIFF_NAME[d] })));
+    });
+    det.append(ul);
+    root.append(det);
+  });
+
+  chips.addEventListener("click", e => {
+    const a = e.target.closest("a.chip"); if (!a) return;
+    const det = document.getElementById(a.getAttribute("href").slice(1));
+    if (det) { e.preventDefault(); det.open = true; det.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+  });
+}
+
+function render() {
+  const cnt = { E: 0, M: 0, H: 0 }, tot = { E: 0, M: 0, H: 0 };
+  Object.values(BY_SLUG).forEach(q => { tot[q.d]++; if (done[q.slug]) cnt[q.d]++; });
+  document.querySelectorAll("li.q").forEach(li => {
+    const rec = done[li.dataset.slug];
+    li.querySelector("input").checked = !!rec;
+    li.classList.toggle("done", !!rec);
+    li.querySelector(".when").textContent = rec ? shortDay(rec.date) : "";
+  });
+  DATA.forEach(([topic, qs]) => {
+    const n = qs.filter(q => done[q[1]]).length, full = n === qs.length;
+    const det = document.getElementById(topicId(topic));
+    const c = det.querySelector(".t-count");
+    c.textContent = n + "/" + qs.length; c.classList.toggle("full", full);
+    det.querySelector(".t-bar").classList.toggle("full", full);
+    det.querySelector(".t-bar > i").style.width = (100 * n / qs.length) + "%";
+    const chip = document.querySelector('.chip[data-topic="' + CSS.escape(topic) + '"]');
+    chip.querySelector("small").textContent = n + "/" + qs.length; chip.classList.toggle("full", full);
+  });
+  const n = cnt.E + cnt.M + cnt.H;
+  document.getElementById("total").textContent = n;
+  document.getElementById("pct").textContent = Math.round(100 * n / TOTAL) + "%";
+  document.getElementById("bar").style.width = (100 * n / TOTAL) + "%";
+  ["E", "M", "H"].forEach(d => {
+    document.getElementById("db-" + d).style.width = (100 * cnt[d] / tot[d]) + "%";
+    const dn = document.getElementById("dn-" + d); dn.replaceChildren(el("b", { text: cnt[d] }), document.createTextNode(" / " + tot[d]));
+  });
+  renderHeat();
+  renderLog();
+  applyFilter();
+}
+
+function perDay() {
+  const m = {};
+  Object.entries(done).forEach(([slug, r]) => { if (BY_SLUG[slug]) m[r.date] = (m[r.date] || 0) + 1; });
+  return m;
+}
+
+function renderHeat() {
+  const m = perDay(), box = document.getElementById("heat");
+  box.replaceChildren();
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const start = new Date(now); start.setDate(start.getDate() - start.getDay() - 7 * 19); // Sunday, 20 columns
+  const t = today();
+  for (let d = new Date(start), i = 0; i < 140; i++, d.setDate(d.getDate() + 1)) {
+    const k = iso(d), c = m[k] || 0;
+    const s = el("span", { title: d > now ? "" : shortDay(k) + ": " + c + (c === 1 ? " problem" : " problems") });
+    if (d > now) s.className = "future";
+    else if (c) s.dataset.l = c >= 6 ? 4 : c >= 4 ? 3 : c >= 2 ? 2 : 1;
+    if (k === t) s.classList.add("today");
+    box.append(s);
+  }
+  // streak: consecutive days ending today (or yesterday) with at least one solve
+  let streak = 0; const d = new Date(now);
+  if (!m[iso(d)]) d.setDate(d.getDate() - 1);
+  while (m[iso(d)]) { streak++; d.setDate(d.getDate() - 1); }
+  const days = Object.keys(m).length;
+  const sEl = document.getElementById("streak");
+  sEl.replaceChildren(el("b", { text: streak }), document.createTextNode(" day streak · "), el("b", { text: days }), document.createTextNode(days === 1 ? " active day" : " active days"));
+}
+
+function renderLog() {
+  const box = document.getElementById("log");
+  box.replaceChildren();
+  const byDay = {};
+  Object.entries(done).forEach(([slug, rec]) => { if (BY_SLUG[slug]) (byDay[rec.date] = byDay[rec.date] || []).push([slug, rec]); });
+  const days = Object.keys(byDay).sort().reverse();
+  if (!days.length) {
+    box.append(el("p", { class: "empty", text: "Nothing yet. Tick your first problem and it shows up here under today's date." }));
+    return;
+  }
+  days.forEach(day => {
+    const items = byDay[day].sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
+    const ul = el("ul");
+    items.forEach(([slug]) => {
+      const q = BY_SLUG[slug];
+      ul.append(el("li", { title: q.topic + " · " + DIFF_NAME[q.d] },
+        el("span", { class: "dot " + q.d }),
+        el("span", { class: "n", text: q.n }),
+        el("a", { href: url(slug), target: "_blank", rel: "noopener", text: q.name })));
+    });
+    box.append(el("section", { class: "day" },
+      el("div", { class: "day-head" },
+        el("span", { class: "day-date", text: fmtDay(day) }),
+        el("span", { class: "day-n", text: items.length + (items.length === 1 ? " problem" : " problems") })),
+      ul));
+  });
+}
+
+function applyFilter() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const hide = document.getElementById("hideDone").checked;
+  document.querySelectorAll("details.topic").forEach(det => {
+    let visible = 0;
+    det.querySelectorAll("li.q").forEach(li => {
+      const show = (!q || li.dataset.search.includes(q)) && !(hide && done[li.dataset.slug]);
+      li.hidden = !show;
+      if (show) visible++;
+    });
+    det.hidden = visible === 0 && !!(q || hide);
+    if (q && visible) det.open = true;
+  });
+}
+
+function toggle(slug, checked) {
+  if (checked) done[slug] = { date: today(), t: Date.now() };
+  else delete done[slug];
+  persist();
+  render();
+}
+
+function persist() {
+  saveLocal();
+  if (!docRef) return;
+  if (saving) { pending = true; return; }
+  saving = true; setSync("Saving…");
+  docRef.set({ done }).then(() => setSync("Synced to your account", "ok"))
+    .catch(() => setSync("Saved in this browser", "local"))
+    .finally(() => { saving = false; if (pending) { pending = false; persist(); } });
+}
+
+document.getElementById("search").addEventListener("input", applyFilter);
+document.getElementById("hideDone").addEventListener("change", applyFilter);
+document.getElementById("expandAll").addEventListener("change", e => {
+  document.querySelectorAll("details.topic").forEach(d => { d.open = e.target.checked; });
+});
+
+build();
+render();
+
+(async () => {
+  const claude = window.claude;
+  if (!claude || !claude.use) { setSync("Saved in this browser", "local"); return; }
+  setSync("Connecting…");
+  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+  const uid = user ? await user.id() : null;
+  if (!db || !uid) { setSync("Saved in this browser", "local"); return; }
+  docRef = db.collection("data/users/" + uid).doc("progress");
+  let first = true;
+  docRef.onSnapshot(snap => {
+    const data = snap.exists ? snap.data() : null;
+    const remote = (data && data.done) || null;
+    if (first) {
+      first = false;
+      // Merge anything ticked in this browser before the account store answered.
+      const merged = JSON.parse(JSON.stringify(remote || {}));
+      let changed = false;
+      for (const k in done) if (!merged[k]) { merged[k] = done[k]; changed = true; }
+      done = merged;
+      saveLocal();
+      render();
+      if (changed) persist(); else setSync("Synced to your account", "ok");
+      return;
+    }
+    if (remote && !saving && !pending) {
+      done = JSON.parse(JSON.stringify(remote));
+      saveLocal();
+      render();
+    }
+  }, () => setSync("Saved in this browser", "local"));
+})();
+</script>
+
+</body>
+</html>
