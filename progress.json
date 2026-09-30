@@ -39,7 +39,11 @@
   "remove-nth-node-from-end-of-list": {
    "date": "2026-09-30",
    "t": 1790752031839
+  },
+  "copy-list-with-random-pointer": {
+   "date": "2026-09-30",
+   "t": 1790791149447
   }
  },
- "updated": 1790752033056
+ "updated": 1790791150663
 }
