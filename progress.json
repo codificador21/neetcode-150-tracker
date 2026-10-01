@@ -55,7 +55,15 @@
   "maximum-depth-of-binary-tree": {
    "date": "2026-10-01",
    "t": 1790855860631
+  },
+  "diameter-of-binary-tree": {
+   "date": "2026-10-01",
+   "t": 1790862283071
+  },
+  "balanced-binary-tree": {
+   "date": "2026-10-01",
+   "t": 1790862506006
   }
  },
- "updated": 1790855861849
+ "updated": 1790862507221
 }
