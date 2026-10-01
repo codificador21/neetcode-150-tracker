@@ -47,7 +47,11 @@
   "find-the-duplicate-number": {
    "date": "2026-10-01",
    "t": 1790801528419
+  },
+  "invert-binary-tree": {
+   "date": "2026-10-01",
+   "t": 1790839470478
   }
  },
- "updated": 1790801529637
+ "updated": 1790839471694
 }
