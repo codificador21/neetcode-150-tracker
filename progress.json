@@ -51,7 +51,11 @@
   "invert-binary-tree": {
    "date": "2026-10-01",
    "t": 1790839470478
+  },
+  "maximum-depth-of-binary-tree": {
+   "date": "2026-10-01",
+   "t": 1790855860631
   }
  },
- "updated": 1790839471694
+ "updated": 1790855861849
 }
