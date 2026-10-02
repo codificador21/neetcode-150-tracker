@@ -83,7 +83,11 @@
   "binary-tree-right-side-view": {
    "date": "2026-10-02",
    "t": 1790913716011
+  },
+  "count-good-nodes-in-binary-tree": {
+   "date": "2026-10-02",
+   "t": 1790939229018
   }
  },
- "updated": 1790913717227
+ "updated": 1790939230234
 }
