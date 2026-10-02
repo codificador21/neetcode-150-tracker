@@ -71,7 +71,11 @@
   "subtree-of-another-tree": {
    "date": "2026-10-02",
    "t": 1790883332073
+  },
+  "lowest-common-ancestor-of-a-binary-search-tree": {
+   "date": "2026-10-02",
+   "t": 1790910902889
   }
  },
- "updated": 1790883333292
+ "updated": 1790910904107
 }
