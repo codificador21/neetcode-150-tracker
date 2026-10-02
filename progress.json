@@ -87,7 +87,11 @@
   "count-good-nodes-in-binary-tree": {
    "date": "2026-10-02",
    "t": 1790939229018
+  },
+  "validate-binary-search-tree": {
+   "date": "2026-10-02",
+   "t": 1790950011988
   }
  },
- "updated": 1790939230234
+ "updated": 1790950013205
 }
